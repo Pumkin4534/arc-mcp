@@ -12,8 +12,9 @@ installation guide at https://pumkin4534.github.io/arc-mcp-site/.
 
 ## Install
 
-Requirements: **macOS**, OpenCode (tested with **1.18.25**), **Rust 1.88+**, **Node.js
-20+**, npm, curl and Xcode command line tools. Intel macOS is tested; Apple Silicon
+Requirements: **macOS**, OpenCode (tested with **1.18.25**) and Xcode command line
+tools. Missing Rust/Cargo and Node.js/npm are prepared automatically. Compatible
+existing tools are reused. Intel macOS is tested; Apple Silicon
 builds from source but has not been exercised on the development host. Linux and
 Windows check execution are not supported by this release.
 
@@ -29,6 +30,13 @@ remapped, and merges an Arc entry into existing OpenCode JSON/JSONC configuratio
 It supports comments and trailing commas, backs up changed configuration and
 refuses conflicting Arc installations. It does not replace existing providers or
 permissions. Source archives contain no developer sessions, logs or credentials.
+
+Automatically prepared build tools live under
+`${XDG_DATA_HOME:-$HOME/.local/share}/arc-mcp/tools` (or `ARC_TOOLS_HOME`). Rust is
+installed through official rustup; Node.js uses a checksum-verified official
+archive. These build-tool PATH changes are local to the installer process, with
+no replacement of existing toolchains or shell-profile edits. If Apple's developer
+tools are missing, run `xcode-select --install` first and rerun the same command.
 
 Quit and restart OpenCode after installation:
 

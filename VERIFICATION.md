@@ -55,3 +55,14 @@ GitHub credentials, CLI configuration or provider credentials. Compilation and
 installation succeeded; the binary contained none of the checked identifying
 build paths. A real stdio handshake returned version 0.1.1 and the seven-tool
 catalog. The operator's existing installation was not the installation target.
+
+## Dependency-aware bootstrap update
+
+The website installer now recovers Rust outside PATH and prepares isolated
+Rust/Cargo and Node.js/npm tools when missing or too old. Eleven bootstrap/site
+tests passed, including retained existing tools/profiles and Node checksum failure.
+A real isolated-home setup installed Rust through official rustup. Initial tool
+startup exceeded the test deadline; direct version checks subsequently passed.
+A deliberate continuation reused that installed toolchain, verified the official
+Node.js 22.23.4 archive, built and installed Arc, and passed the seven-tool MCP
+handshake. The initial timed-out run is not reported as a successful full run.
