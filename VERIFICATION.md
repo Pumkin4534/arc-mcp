@@ -18,6 +18,7 @@ local test logs and session IDs are not distributed.
 | npm audit | No reported vulnerabilities |
 | OSV audit of 116 Rust dependency versions | No reported vulnerability matches |
 | Bash installer syntax | Passed |
+| Authenticated private GitHub download → source build → installation | Passed into an isolated configuration directory; installed binary/plugin/config verified and identifying build paths absent |
 | Real OpenCode integration with the installed portable layout | Full `/arc` workflow passed with two distinct native read-only reviewer sessions |
 | Real native Stop during both reviewers | Passed; no finalization or automatic restart |
 | Website | 360/768/1440 layouts without horizontal overflow, 200% zoom, working demo/reset, private/public command selector, copy success/failure, keyboard skip link, reduced motion, image loading and no console errors |
