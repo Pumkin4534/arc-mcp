@@ -21,5 +21,7 @@ Please report issues through the repository's GitHub security advisory interface
 when available. During private preview, contact the repository owner privately.
 Do not post credentials, local evidence archives or personal paths in public issues.
 
-No deployment workflow changes repository visibility or enables Pages. Public
-release is an explicit owner decision. See `RELEASE-CHECKLIST.md`.
+This MCP repository has no public Pages deployment and remains private. The
+website is published separately in `arc-mcp-site` with owner authorization.
+Public release of the MCP source is a separate explicit owner decision. See
+`RELEASE-CHECKLIST.md`.

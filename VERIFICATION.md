@@ -42,6 +42,7 @@ string is absent. The source retains intentional GitHub project attribution.
 No protected-review or universal native-tool sandbox claim is made. Runtime
 records can contain future users' private task/output data; see `PRIVACY.md`.
 
-No deployment workflow enables public hosting or changes repository visibility.
-The anonymous curl command remains unavailable until the owner approves a public
-release. See `RELEASE-CHECKLIST.md` before changing that status.
+This MCP repository remains private without a Pages deployment. The separately
+authorized public website now supplies a downloadable bootstrap, but installing
+still requires authenticated access to the private source. See
+`RELEASE-CHECKLIST.md` before making the MCP implementation public.

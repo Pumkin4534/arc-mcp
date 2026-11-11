@@ -1,6 +1,8 @@
 # Public release — requires owner approval
 
 The repository must remain **private** until the owner explicitly approves.
+The website has separately been approved and published in `arc-mcp-site`;
+that approval does not authorize making the MCP source public.
 
 Before making it public:
 
@@ -13,7 +15,7 @@ Before making it public:
 - Keep commit author/committer email on GitHub's no-reply domain.
 - Obtain explicit owner approval before changing repository visibility.
 
-After approval, make the repository public, verify the version-tagged curl URL,
-and only then enable GitHub Pages from `site/` (or use the chosen hosting service).
-The website currently labels the anonymous curl command as pending public release.
-Update that status only when the command is actually accessible anonymously.
+After source-release approval, make the MCP repository public and update the
+separate website bootstrap to fetch the versioned public source without requiring
+GitHub CLI access. Keep the single website curl URL stable, verify anonymous
+installation, and then update the private-preview access labels.

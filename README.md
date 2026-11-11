@@ -7,8 +7,9 @@ reviewers and an advisory completion gate. OpenCode keeps its models, UI and too
 
 ## Status: private preview
 
-This repository and website are private review material. No public hosting or
-automatic visibility change is enabled. Public release requires owner approval.
+This MCP repository remains private. The separately published website is at
+https://pumkin4534.github.io/arc-mcp-site/. Public release of the MCP source still
+requires owner approval; publishing the website did not change repository access.
 
 ## Install
 
@@ -17,19 +18,14 @@ Requirements: **macOS**, OpenCode (tested with **1.18.25**), **Rust 1.88+**, **N
 builds from source but has not been exercised on the development host. Linux and
 Windows check execution are not supported by this release.
 
-### Private preview — authenticated repository access required
+### One-line install — private preview access required
 
 ```sh
-gh api repos/Pumkin4534/arc-mcp/contents/install.sh --jq .content | base64 --decode | ARC_PRIVATE=1 bash
+curl -fsSL https://pumkin4534.github.io/arc-mcp-site/install.sh | bash
 ```
 
-### Public one-line install — available only after public release approval
-
-```sh
-curl -fsSL https://raw.githubusercontent.com/Pumkin4534/arc-mcp/v0.1.1/install.sh | bash
-```
-
-The public URL cannot be fetched anonymously while this repository is private.
+The bootstrap URL is public. Installation requires an authenticated GitHub CLI
+and access to this private repository; it checks access before making changes.
 The installer downloads the versioned source, builds locally with builder paths
 remapped, and merges an Arc entry into existing OpenCode JSON/JSONC configuration.
 It supports comments and trailing commas, backs up changed configuration and
@@ -99,8 +95,9 @@ npm audit --omit=dev
 local deterministic provider. It verifies integration, not live model judgment
 quality. Set `ARC_TEST_SCENARIO=stop` for native cancellation testing.
 
-Preview the website locally with `python3 -m http.server 4173 --bind 127.0.0.1
---directory site`. No GitHub Pages deployment is enabled.
+The current website is maintained separately in `Pumkin4534/arc-mcp-site`.
+The `site/` directory here is the earlier private-preview design. No GitHub Pages
+deployment is enabled for this MCP repository.
 
 To remove Arc, delete only `mcp.arc` from the selected config and the installed
 Arc files: `arc-mcp/`, `plugins/arc-opencode.js`, `agents/arc-reviewer.md`,
