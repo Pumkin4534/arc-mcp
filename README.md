@@ -5,11 +5,10 @@
 Arc adds 1–5 ordered outcomes, actual check records, two fresh read-only native
 reviewers and an advisory completion gate. OpenCode keeps its models, UI and tools.
 
-## Status: private preview
+## Open source · v0.1.1
 
-This MCP repository remains private. The separately published website is at
-https://pumkin4534.github.io/arc-mcp-site/. Public release of the MCP source still
-requires owner approval; publishing the website did not change repository access.
+Arc MCP is publicly available under the MIT license. Explore the workflow and
+installation guide at https://pumkin4534.github.io/arc-mcp-site/.
 
 ## Install
 
@@ -18,15 +17,14 @@ Requirements: **macOS**, OpenCode (tested with **1.18.25**), **Rust 1.88+**, **N
 builds from source but has not been exercised on the development host. Linux and
 Windows check execution are not supported by this release.
 
-### One-line install — private preview access required
+### One-line install
 
 ```sh
 curl -fsSL https://pumkin4534.github.io/arc-mcp-site/install.sh | bash
 ```
 
-The bootstrap URL is public. Installation requires an authenticated GitHub CLI
-and access to this private repository; it checks access before making changes.
-The installer downloads the versioned source, builds locally with builder paths
+No GitHub login, CLI, or repository invitation is required. The installer
+downloads the public versioned source, builds locally with builder paths
 remapped, and merges an Arc entry into existing OpenCode JSON/JSONC configuration.
 It supports comments and trailing commas, backs up changed configuration and
 refuses conflicting Arc installations. It does not replace existing providers or

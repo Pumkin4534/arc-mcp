@@ -42,7 +42,8 @@ string is absent. The source retains intentional GitHub project attribution.
 No protected-review or universal native-tool sandbox claim is made. Runtime
 records can contain future users' private task/output data; see `PRIVACY.md`.
 
-This MCP repository remains private without a Pages deployment. The separately
-authorized public website now supplies a downloadable bootstrap, but installing
-still requires authenticated access to the private source. See
-`RELEASE-CHECKLIST.md` before making the MCP implementation public.
+The owner has explicitly approved public source release. The repository and
+website now use a public, version-pinned installation path without requiring
+GitHub CLI credentials. The privacy scan and full-history Gitleaks scan were
+refreshed with no findings; npm audit and the OSV check of 116 Rust dependency
+versions reported no vulnerabilities. See `RELEASE-CHECKLIST.md` for the process.
