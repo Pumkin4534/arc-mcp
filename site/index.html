@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Arc MCP adds a focused plan, real check evidence and fresh native reviewers to OpenCode. A Rust extension for macOS.">
+  <meta name="robots" content="noindex,nofollow">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+  <title>Arc MCP — A smaller plan. A stronger finish.</title>
+  <link rel="icon" href="mark.svg" type="image/svg+xml"><link rel="stylesheet" href="style.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header class="shell header">
+  <a class="brand" href="#" aria-label="Arc MCP home"><img src="mark.svg" width="34" height="34" alt=""><span>arc<span class="brand-note">MCP</span></span></a>
+  <nav aria-label="Main navigation"><a href="#workflow">Workflow</a><a href="#trust">Trust & privacy</a><a class="nav-install" href="#install">Install <span aria-hidden="true">↗</span></a></nav>
+</header>
+<main id="main">
+  <section class="shell hero">
+    <div class="hero-copy">
+      <p class="eyebrow"><span class="dot"></span> NATIVE OPENCODE. EVIDENCE-LED.</p>
+      <h1>A smaller plan.<br>A <em>stronger</em> finish.</h1>
+      <p class="lead">Give your coding agent a clear path from request to checked result. Arc adds focused outcomes, real evidence, and a fresh pair of reviewer perspectives to OpenCode.</p>
+      <div class="hero-actions"><a class="button" href="#install">Set up Arc <span aria-hidden="true">↗</span></a><a class="text-link" href="https://github.com/Pumkin4534/arc-mcp">Explore the source <span aria-hidden="true">↗</span></a></div>
+      <p class="fine">Rust-powered · macOS · Your model, your native tools</p>
+    </div>
+    <aside class="example" aria-labelledby="example-title">
+      <div class="example-top"><span class="eyebrow">ILLUSTRATIVE WORKFLOW</span><span class="example-version">/arc</span></div>
+      <h2 id="example-title">Add a CSV export</h2><p class="example-subtitle">Three outcomes. Every acceptance detail.</p>
+      <ol class="example-tasks"><li><span class="number">01</span><span>Define export behavior<small>Headers, encoding, empty rows</small></span><span class="state">Ready</span></li><li><span class="number">02</span><span>Implement & check<small>Real commands · current source</small></span><span class="state">Ready</span></li><li><span class="number">03</span><span>Review & finish<small>Correctness + adversarial</small></span><span class="state pending" id="example-state">Pending</span></li></ol>
+      <div class="example-result"><span class="terminal-prompt">› arc_finalize</span><p id="example-message" aria-live="polite">Waiting for two reviewer judgments.</p><span class="assurance">assurance: native-advisory</span></div>
+      <button class="example-button" id="demo" type="button">Show the reviewed state <span aria-hidden="true">→</span></button>
+      <p class="example-disclaimer">Interactive example only. No commands or model calls run here.</p>
+    </aside>
+  </section>
+  <div class="shell principle"><span>LESS SCATTER. MORE SIGNAL.</span><p>Keep the work native.<br>Make the finish accountable.</p></div>
+  <section class="shell section" id="workflow" aria-labelledby="workflow-title">
+    <div class="section-heading"><p class="eyebrow">01 / THE WORKFLOW</p><h2 id="workflow-title">A clear line from<br>intent to evidence.</h2><p>One compact ledger, alongside the environment you already use. No replacement interface or extra planning model.</p></div>
+    <div class="workflow-grid">
+      <article><span class="step">01—02</span><h3>Plan, then build.</h3><p>Keep one to five broad, dependency-ordered outcomes. Preserve the details inside acceptance criteria. Edit with OpenCode’s native tools.</p></article>
+      <article><span class="step">03</span><h3>Record what ran.</h3><p>Capture real command results against scoped source fingerprints. Missing, failed, interrupted or stale evidence blocks readiness.</p></article>
+      <article><span class="step">04—05</span><h3>Get a fresh perspective.</h3><p>Two read-only native reviewers run in parallel. Both see the evidence packet, not the writer’s conversation. Finalize against current results.</p></article>
+    </div>
+    <div class="stop-note"><strong>Stop still means stop.</strong><span>New input, questions and permissions take priority. Arc never automatically resumes a stopped session or replays an interrupted check.</span></div>
+  </section>
+  <section class="install-section" id="install" aria-labelledby="install-title"><div class="shell install-layout">
+    <div><p class="eyebrow">02 / GET STARTED</p><h2 id="install-title">A small addition.<br>A deliberate workflow.</h2><p>The installer builds from versioned source, preserves your existing OpenCode settings, and refuses conflicting Arc installations.</p><ul class="requirements"><li>macOS with Xcode command line tools</li><li>OpenCode · tested with 1.18.25</li><li>Rust 1.88+ · Node.js 20+ · npm · curl</li></ul><p class="fine">Intel macOS tested. Apple Silicon builds from source; not yet verified on hardware.</p></div>
+    <div class="install-card">
+      <div class="private-label"><span class="dot"></span> PRIVATE PREVIEW</div>
+      <fieldset class="install-options"><legend>Choose repository access</legend><label><input type="radio" name="access" value="private" checked> Private preview</label><label><input type="radio" name="access" value="public"> After public release</label></fieldset>
+      <p id="access-note">Requires repository access and an authenticated GitHub CLI. No token is placed in the command.</p>
+      <div class="codebox"><pre tabindex="0"><code id="install-command">gh api repos/Pumkin4534/arc-mcp/contents/install.sh --jq .content | base64 --decode | ARC_PRIVATE=1 bash</code></pre><button type="button" id="copy" aria-label="Copy installation command">Copy command</button></div>
+      <p class="copy-status" id="copy-status" role="status"></p>
+      <div class="after-install"><span class="eyebrow">THEN RESTART OPENCODE</span><code>/arc Your request and acceptance criteria</code><p><code>/arc-status</code> checks progress. <code>/arc-continue</code> explicitly continues.</p></div>
+      <a class="text-link" href="https://github.com/Pumkin4534/arc-mcp/blob/main/README.md">Read setup & removal instructions <span aria-hidden="true">↗</span></a>
+    </div>
+  </div></section>
+  <section class="shell section trust-layout" id="trust" aria-labelledby="trust-title"><div><p class="eyebrow">03 / KNOW THE BOUNDARY</p><h2 id="trust-title">Useful evidence.<br>Honest limits.</h2><p class="trust-lead">Arc is a workflow aid, not a tamper-proof attestation system. The distinction stays visible in every completion result.</p><a class="text-link" href="https://github.com/Pumkin4534/arc-mcp/blob/main/SECURITY.md">Read the security model <span aria-hidden="true">↗</span></a></div>
+    <div class="trust-list"><article><h3>Native-advisory by design</h3><p>Native tools remain available. Same-user processes can modify host records. Only MCP-owned checks receive scoped macOS Seatbelt restrictions.</p></article><article><h3>Your provider still matters</h3><p>Arc adds no telemetry service. Local records include tasks, paths and command output; they are not automatically redacted. Remote models receive the review context you send through OpenCode.</p></article><article><h3>Scoped, not absolute</h3><p>Fingerprints are non-atomic and exclude ignored/generated content and symlink referents. Process-group cleanup does not guarantee termination of deliberately detached descendants.</p></article></div>
+  </section>
+</main>
+<footer class="shell footer"><a class="brand" href="#"><img src="mark.svg" width="25" height="25" alt=""><span>arc<span class="brand-note">MCP</span></span></a><span>A focused extension for OpenCode. MIT licensed.</span><a href="https://github.com/Pumkin4534/arc-mcp/blob/main/PRIVACY.md">Privacy</a><span class="preview-note">Private preview · public release pending approval</span></footer>
+</body></html>

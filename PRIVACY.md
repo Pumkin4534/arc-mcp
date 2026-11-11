@@ -1,0 +1,35 @@
+# Privacy
+
+The distributable project excludes developer usernames/home paths, local handoff
+notes, conversations, provider configuration, generated logs, state and build
+artifacts. The GitHub account in repository/install URLs is intentional public
+project attribution. Commit identity uses GitHub's no-reply address.
+
+Release builds use path remapping; the executable does not embed a developer's
+source-root constant. Optional development source protection uses the explicit
+runtime `--source-root` argument instead.
+
+## Data created when you use Arc
+
+Arc stores workflow goals, acceptance criteria, project paths, command strings,
+bounded output, timestamps, scoped source hashes, review findings and native
+session identifiers in a local state directory. On macOS this defaults to
+`~/Library/Application Support/arc-mcp`; `--data-home` can select another external
+directory. Files use owner-only permissions, not encryption. Same-user processes
+can read or modify them. There is no automatic retention/garbage-collection policy.
+
+Command output is not automatically sanitized. Source fingerprint exclusions do
+not prevent a command from printing a secret. Avoid placing credentials in task
+text, command lines or captured output. Review project-specific retention needs
+before sharing any runtime artifacts.
+
+The native plugin sends evidence packets through OpenCode's selected model
+provider. Its privacy/retention policies apply. Source read by reviewers may also
+enter those model requests. No separate analytics, remote logging or telemetry
+endpoint is implemented by Arc. Installing downloads code/dependencies from
+GitHub, npm and crates.io; the optional dependency audit sends only public package
+names and versions to OSV.
+
+To remove stored workflow data, first stop active checks/OpenCode, then remove the
+chosen Arc state directory. OpenCode maintains its own session history separately;
+removing Arc state does not delete those sessions or a provider's retained data.

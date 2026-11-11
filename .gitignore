@@ -1,0 +1,14 @@
+/target/
+/node_modules/
+/dist/
+.DS_Store
+.env
+.env.*
+*.log
+*.tmp
+*.bak
+AGENT_HANDOFF.txt
+agent_*_report.txt
+/state/
+/artifacts/
+/private/

@@ -1,0 +1,13 @@
+{
+  "name": "arc-mcp-distribution",
+  "version": "0.1.1",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "test": "node --test tests/plugin.test.mjs tests/install.test.mjs",
+    "build": "node scripts/build.mjs",
+    "privacy": "node scripts/privacy-scan.mjs"
+  },
+  "dependencies": { "jsonc-parser": "3.3.1" }
+}
