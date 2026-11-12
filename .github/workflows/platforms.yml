@@ -70,6 +70,8 @@ jobs:
           $errors = $null
           [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PWD 'install.ps1'), [ref]$tokens, [ref]$errors) | Out-Null
           if ($errors.Count) { $errors | Format-List; exit 1 }
+      - name: Platform bootstrap installation
+        run: node tests/bootstrap-smoke.mjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: ${{ matrix.label }}
