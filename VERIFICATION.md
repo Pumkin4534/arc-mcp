@@ -1,4 +1,55 @@
-# Pre-publication verification
+# Release verification
+
+## v0.2.0 cross-platform verification
+
+[Platform workflow 43271511562](https://github.com/Pumkin4534/arc-mcp/actions/runs/43271511562)
+passed all six jobs on runtime/installer commit `b1b931f`. Release artifacts must
+come from a successful workflow on the final tagged commit, including any later
+documentation changes; see [RELEASE-CHECKLIST.md](RELEASE-CHECKLIST.md).
+
+| Native runner image | Architecture | Result |
+| --- | --- | --- |
+| Ubuntu 22.04 | x64 | Passed |
+| Ubuntu 22.04 ARM | ARM64 | Passed |
+| Windows Server 2022 | x64 | Passed |
+| Windows 11 ARM | ARM64 | Passed |
+| macOS 15 Intel | x64 | Passed |
+| macOS 15 Apple Silicon | ARM64 | Passed |
+
+Each job ran Rust tests, Clippy, the 11 plugin/installer tests, source and release
+binary privacy scans, official OpenCode 1.18.25 completion and native Stop
+integration, release packaging, packaged installation and a real MCP check.
+macOS exercises Seatbelt and rejects the native executor before launch. Windows
+and Ubuntu exercise native output/exit, timeout, cancellation, bounded output and
+owned-process cleanup without claiming filesystem/network isolation.
+
+The actual platform bootstraps passed both with existing Node.js and with an
+unavailable/unusable runtime. In the latter case they downloaded the official
+Node.js 22.23.4 archive, verified its pinned checksum and installed it in a fresh
+managed directory. The tests verified that no compiler ran. Windows exercised
+Windows PowerShell 5.1, including caller-PATH restoration. Release-bundle transport
+was a local fixture of the real built archive and checksum; the Node download,
+archive extraction, dependency installation and configuration merge were real.
+These pre-release tests do not claim to have downloaded unpublished release URLs.
+
+Fresh checks also found no npm audit findings or OSV matches among 117 locked Rust
+dependency versions. Source privacy scanning covered 50 files without findings;
+the full-history Gitleaks scan reported no leaks. The private preservation baseline
+confirmed all 44 tracked original source/installed files unchanged. The separate
+website passed nine site/orbit tests and browser checks of Windows/macOS/Linux
+command selection, mocked clipboard copy, reduced motion, mobile overflow and
+desktop navigation alignment.
+
+Initial candidate runs failed: Windows PowerShell native-argument quoting, cached
+Unix Node lookup after installing a runtime, and a test of the unsupported native
+runner on macOS. These were fixed before the successful workflow above; failed or
+interrupted runs are not counted as successful release verification.
+
+All native review records remain advisory. Deterministic provider tests establish
+integration and cancellation behavior, not real-model judgment quality. Scans are
+bounded and process cleanup is scoped; see `SECURITY.md` and `PRIVACY.md`.
+
+## Historical v0.1.1 source-release verification
 
 Scope: sanitized **0.1.1** source, portable installer and private-preview website.
 The original development tree and installed Arc/OpenCode configuration were kept
