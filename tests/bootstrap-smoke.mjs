@@ -14,7 +14,7 @@ const fixture=await mkdtemp(join(root,'target/bootstrap-smoke-'));
 const home=join(fixture,'home'),bin=join(fixture,'bin'),tmp=join(fixture,'tmp');
 await Promise.all([mkdir(home),mkdir(bin),mkdir(tmp)]);
 const env={PATH:`${bin}${process.platform==='win32'?';':':'}${process.env.PATH}`,HOME:home,USERPROFILE:home,ARC_CONFIG_HOME:join(home,'.config/opencode'),TMPDIR:tmp,TEMP:tmp,TMP:tmp};
-for(const key of ['SYSTEMROOT','WINDIR','COMSPEC','PATHEXT','SystemDrive','ProgramFiles','ProgramFiles(x86)','ProgramW6432'])if(process.env[key])env[key]=process.env[key];
+for(const key of ['SYSTEMROOT','WINDIR','COMSPEC','PATHEXT','SystemDrive','ProgramFiles','ProgramFiles(x86)','ProgramW6432','OS','PROCESSOR_ARCHITECTURE','PROCESSOR_ARCHITEW6432'])if(process.env[key])env[key]=process.env[key];
 const archive=join(root,'dist',asset),checksum=`${archive}.sha256`;
 if(process.platform==='win32'){
   env.APPDATA=join(home,'AppData/Roaming');env.LOCALAPPDATA=join(home,'AppData/Local');
@@ -26,7 +26,7 @@ if(process.platform==='win32'){
   execFileSync(join(env.SYSTEMROOT,'System32/WindowsPowerShell/v1.0/powershell.exe'),['-NoProfile','-NonInteractive','-Command',`Get-Content -Raw -LiteralPath ${q(join(fixture,'run.ps1'))} | Invoke-Expression`],{env,stdio:'inherit',timeout:120000});
 }else{
   const curl=execFileSync('/bin/sh',['-c','command -v curl'],{encoding:'utf8'}).trim();
-  const wrapper=`#!${process.execPath}\nconst fs=require('node:fs'),cp=require('node:child_process');const a=process.argv.slice(2),out=a[a.indexOf('--output')+1];if(a.includes(${JSON.stringify(release+'/'+asset)}))fs.copyFileSync(${JSON.stringify(archive)},out);else if(a.includes(${JSON.stringify(release+'/'+asset+'.sha256')}))fs.copyFileSync(${JSON.stringify(checksum)},out);else cp.execFileSync(${JSON.stringify(curl)},a,{stdio:'inherit'});\n`;
+  const wrapper=`#!${process.execPath}\nimport fs from 'node:fs';import cp from 'node:child_process';const a=process.argv.slice(2),out=a[a.indexOf('--output')+1];if(a.includes(${JSON.stringify(release+'/'+asset)}))fs.copyFileSync(${JSON.stringify(archive)},out);else if(a.includes(${JSON.stringify(release+'/'+asset+'.sha256')}))fs.copyFileSync(${JSON.stringify(checksum)},out);else cp.execFileSync(${JSON.stringify(curl)},a,{stdio:'inherit'});\n`;
   await writeFile(join(bin,'curl'),wrapper,{mode:0o755});
   for(const name of ['cargo','rustc'])await writeFile(join(bin,name),'#!/bin/sh\nprintf unexpected > "$HOME/compiler-called"\nexit 99\n',{mode:0o755});
   execFileSync('/bin/bash',[join(root,'install.sh')],{env,stdio:'inherit',timeout:120000});

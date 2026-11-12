@@ -52,6 +52,9 @@ impl ProcessCheckExecutor {
             "HOMEPATH",
             "SYSTEMROOT",
             "SystemDrive",
+            "OS",
+            "PROCESSOR_ARCHITECTURE",
+            "PROCESSOR_ARCHITEW6432",
             "ProgramFiles",
             "ProgramFiles(x86)",
             "ProgramW6432",
@@ -106,7 +109,7 @@ impl ProcessCheckExecutor {
             _ = request.cancellation.cancelled() => { cancelled = true; lifetime.terminate()?; child.wait().await? }
             _ = tokio::time::sleep(Duration::from_secs(request.timeout_secs)) => { timed_out = true; lifetime.terminate()?; child.wait().await? }
         };
-        lifetime.terminate()?;
+        lifetime.finish()?;
         #[cfg(windows)]
         {
             let sent = input.await?;
@@ -186,7 +189,7 @@ impl ProcessLifetime {
         Ok(Self(Some(child.id().context("missing process ID")?)))
     }
     fn terminate(&mut self) -> Result<()> {
-        if let Some(pid) = self.0.take() {
+        if let Some(pid) = self.0 {
             // SAFETY: this child was started in a new, owned process group.
             if unsafe { libc::kill(-(pid as i32), libc::SIGKILL) } != 0 {
                 let error = std::io::Error::last_os_error();
@@ -195,6 +198,13 @@ impl ProcessLifetime {
                 }
             }
         }
+        Ok(())
+    }
+    fn finish(&mut self) -> Result<()> {
+        // Re-signal after reaping the leader: a child that was being forked
+        // during the first group signal must not keep the output pipes alive.
+        self.terminate()?;
+        self.0 = None;
         Ok(())
     }
 }
@@ -260,6 +270,9 @@ impl ProcessLifetime {
             self.stopped = true;
         }
         Ok(())
+    }
+    fn finish(&mut self) -> Result<()> {
+        self.terminate()
     }
 }
 impl Drop for ProcessLifetime {
