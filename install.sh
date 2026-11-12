@@ -43,6 +43,9 @@ if ! node_ready; then
     mkdir "$work/node"; tar -xzf "$work/node.tar.gz" -C "$work/node" --strip-components=1
     mkdir -p "$tools"; mv "$work/node" "$node_dir"
   fi
+  # Readiness checks may have cached an older executable before the managed
+  # directory existed. Resolve Node/npm again after the new runtime is in place.
+  hash -r
 fi
 node_ready || { printf '%s\n' 'Node.js/npm setup failed.' >&2; exit 1; }
 asset="arc-mcp-$version-$platform-$arch.tar.gz"

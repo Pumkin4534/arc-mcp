@@ -2,7 +2,9 @@ use arc_mcp::{
     evidence::{CheckExecutor, CheckRequest},
     process_check::ProcessCheckExecutor,
 };
-use std::{fs, path::Path, sync::Arc, time::Duration};
+#[cfg(not(target_os = "macos"))]
+use std::time::Duration;
+use std::{fs, path::Path, sync::Arc};
 use tokio_util::sync::CancellationToken;
 
 fn executor() -> Arc<ProcessCheckExecutor> {
@@ -20,6 +22,40 @@ fn request(root: &Path, command: &str, token: CancellationToken) -> CheckRequest
     }
 }
 
+#[cfg(target_os = "macos")]
+#[tokio::test]
+async fn macos_refuses_native_execution_before_launch() {
+    let temp = tempfile::tempdir().unwrap();
+    let result = executor()
+        .execute(request(
+            temp.path(),
+            "printf unguarded > unexpected.txt",
+            CancellationToken::new(),
+        ))
+        .await;
+    assert!(
+        result
+            .unwrap_err()
+            .to_string()
+            .contains("macOS requires Seatbelt")
+    );
+    assert!(!temp.path().join("unexpected.txt").exists());
+
+    let project = temp.path().join("project");
+    fs::create_dir(&project).unwrap();
+    let output = std::process::Command::new(env!("CARGO_BIN_EXE_arc-mcp"))
+        .arg("--root")
+        .arg(&project)
+        .arg("--data-home")
+        .arg(temp.path().join("state"))
+        .args(["--runner", "native", "serve"])
+        .output()
+        .unwrap();
+    assert!(!output.status.success());
+    assert!(String::from_utf8_lossy(&output.stderr).contains("macOS MCP checks require Seatbelt"));
+}
+
+#[cfg(not(target_os = "macos"))]
 #[tokio::test]
 async fn native_output_exit_unicode_and_scope_are_honest() {
     let temp = tempfile::tempdir().unwrap();
@@ -39,6 +75,7 @@ async fn native_output_exit_unicode_and_scope_are_honest() {
     assert!(!result.cancelled && !result.timed_out);
 }
 
+#[cfg(not(target_os = "macos"))]
 #[tokio::test]
 async fn native_cancellation_cleans_owned_background_children() {
     let temp = tempfile::tempdir().unwrap();
@@ -73,6 +110,7 @@ async fn native_cancellation_cleans_owned_background_children() {
     );
 }
 
+#[cfg(not(target_os = "macos"))]
 #[tokio::test]
 async fn native_timeout_precancel_and_output_cap() {
     let temp = tempfile::tempdir().unwrap();
@@ -115,6 +153,7 @@ async fn native_timeout_precancel_and_output_cap() {
     assert!(result.stdout.len() <= 2048);
 }
 
+#[cfg(not(target_os = "macos"))]
 #[tokio::test]
 async fn native_mode_does_not_pretend_to_isolate_filesystem_writes() {
     let temp = tempfile::tempdir().unwrap();

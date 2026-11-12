@@ -14,7 +14,7 @@ runtime `--source-root` argument instead.
 Arc stores workflow goals, acceptance criteria, project paths, command strings,
 bounded output, timestamps, scoped source hashes, review findings and native
 session identifiers in a local state directory. On macOS this defaults to
-`~/Library/Application Support/arc-mcp`; `--data-home` can select another external
+`~/Library/Application Support/arc-mcp`; `--data-home` or `ARC_DATA_HOME` can select another external
 directory. Unix files use owner-only mode bits; Windows storage inherits the
 parent directory's ACLs. Use a private user-owned data location. This is not
 encryption. Same-user processes
@@ -29,8 +29,9 @@ The native plugin sends evidence packets through OpenCode's selected model
 provider. Its privacy/retention policies apply. Source read by reviewers may also
 enter those model requests. No separate analytics, remote logging or telemetry
 endpoint is implemented by Arc. Installing downloads code/dependencies from
-GitHub, npm and crates.io; the optional dependency audit sends only public package
-names and versions to OSV.
+GitHub and npm, plus nodejs.org when a managed Node.js runtime is needed.
+Building from source also downloads Rust dependencies from crates.io. The optional
+dependency audit sends only public package names and versions to OSV.
 
 To remove stored workflow data, first stop active checks/OpenCode, then remove the
 chosen Arc state directory. OpenCode maintains its own session history separately;

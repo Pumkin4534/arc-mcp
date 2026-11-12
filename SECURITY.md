@@ -28,5 +28,6 @@ when available, or contact the repository owner privately.
 Do not post credentials, local evidence archives or personal paths in public issues.
 
 The MCP source is public with owner authorization. The website is maintained
-separately in `arc-mcp-site`; its installer downloads a pinned public source
-archive without authentication. See `RELEASE-CHECKLIST.md` for release checks.
+separately in `Pumkin4534/Pumkin4534.github.io`; its platform-specific wrappers
+delegate to this repository's installers. These download version-pinned prebuilt
+bundles without authentication. See `RELEASE-CHECKLIST.md` for release checks.

@@ -18,6 +18,10 @@ impl ProcessCheckExecutor {
 
     async fn run(&self, request: CheckRequest) -> Result<CheckOutcome> {
         ensure!(
+            !cfg!(target_os = "macos"),
+            "native_runner: macOS requires Seatbelt; no native fallback"
+        );
+        ensure!(
             !request.cancellation.is_cancelled(),
             "cancelled before command launch"
         );
