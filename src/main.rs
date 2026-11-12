@@ -71,15 +71,19 @@ async fn run() -> Result<()> {
     if matches!(&cli.command, Action::NativeCheckChild) {
         return arc_mcp::process_check::child_main().await;
     }
-    let root = cli.root.unwrap_or(std::env::current_dir()?);
-    let home = cli
+    let root = match cli.root {
+        Some(root) => root,
+        None => std::env::current_dir()?,
+    };
+    let home = match cli
         .data_home
         .or_else(|| std::env::var_os("ARC_DATA_HOME").map(PathBuf::from))
-        .unwrap_or(
-            dirs::data_local_dir()
-                .context("missing data directory")?
-                .join("arc-mcp"),
-        );
+    {
+        Some(home) => home,
+        None => dirs::data_local_dir()
+            .context("missing data directory")?
+            .join("arc-mcp"),
+    };
     let engine = WorkflowEngine::new(&root, &home)?.with_native_mode();
     match cli.command {
         Action::Serve => {
