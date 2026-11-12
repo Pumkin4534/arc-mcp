@@ -50,13 +50,19 @@ async fn native_cancellation_cleans_owned_background_children() {
     let token = CancellationToken::new();
     let input = request(temp.path(), command, token.clone());
     let run = tokio::spawn(async move { executor().execute(input).await });
-    tokio::time::timeout(Duration::from_secs(20), async {
+    let started = tokio::time::timeout(Duration::from_secs(20), async {
         while !temp.path().join("started.txt").exists() {
             tokio::time::sleep(Duration::from_millis(25)).await;
         }
     })
-    .await
-    .expect("native command never reached its readiness marker");
+    .await;
+    if started.is_err() {
+        token.cancel();
+        panic!(
+            "native command never reached its readiness marker: {:?}",
+            run.await.unwrap()
+        );
+    }
     token.cancel();
     let result = run.await.unwrap().unwrap();
     assert!(result.cancelled);
@@ -104,7 +110,7 @@ async fn native_timeout_precancel_and_output_cap() {
         .execute(request(temp.path(), output, CancellationToken::new()))
         .await
         .unwrap();
-    assert_eq!(result.exit_code, Some(0));
+    assert_eq!(result.exit_code, Some(0), "{result:?}");
     assert!(result.truncated);
     assert!(result.stdout.len() <= 2048);
 }
@@ -123,7 +129,7 @@ async fn native_mode_does_not_pretend_to_isolate_filesystem_writes() {
         .execute(request(&root, command, CancellationToken::new()))
         .await
         .unwrap();
-    assert_eq!(result.exit_code, Some(0));
+    assert_eq!(result.exit_code, Some(0), "{result:?}");
     assert!(temp.path().join("outside.txt").exists());
     assert!(result.runner.contains("NO filesystem/network sandbox"));
 }

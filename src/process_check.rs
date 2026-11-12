@@ -51,6 +51,10 @@ impl ProcessCheckExecutor {
             "HOMEDRIVE",
             "HOMEPATH",
             "SYSTEMROOT",
+            "SystemDrive",
+            "ProgramFiles",
+            "ProgramFiles(x86)",
+            "ProgramW6432",
             "WINDIR",
             "COMSPEC",
             "PATHEXT",
@@ -284,11 +288,26 @@ pub async fn child_main() -> Result<()> {
     );
     let shell = PathBuf::from(std::env::var_os("SYSTEMROOT").context("SYSTEMROOT missing")?)
         .join("System32/WindowsPowerShell/v1.0/powershell.exe");
+    // Do not inherit PowerShell 7's module path into Windows PowerShell 5.1.
+    // Its built-in file/process cmdlets must be resolvable after env_clear.
+    let mut modules = vec![
+        shell
+            .parent()
+            .context("PowerShell directory missing")?
+            .join("Modules"),
+    ];
+    if let Some(path) = std::env::var_os("ProgramFiles") {
+        modules.push(PathBuf::from(path).join("WindowsPowerShell/Modules"));
+    }
+    if let Some(path) = std::env::var_os("USERPROFILE") {
+        modules.push(PathBuf::from(path).join("Documents/WindowsPowerShell/Modules"));
+    }
     let script = format!(
         "[Console]::OutputEncoding = [System.Text.UTF8Encoding]::new($false); $OutputEncoding = [Console]::OutputEncoding; {}",
         input.command
     );
     let status = Command::new(shell)
+        .env("PSModulePath", std::env::join_paths(modules)?)
         .args([
             "-NoLogo",
             "-NoProfile",
