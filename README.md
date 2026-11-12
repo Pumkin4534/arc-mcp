@@ -8,7 +8,7 @@ reviewers and an advisory completion gate. OpenCode keeps its models, UI and too
 ## Open source · v0.1.1
 
 Arc MCP is publicly available under the MIT license. Explore the workflow and
-installation guide at https://pumkin4534.github.io/arc-mcp-site/.
+installation guide at https://pumkin4534.github.io/.
 
 ## Install
 
@@ -21,7 +21,7 @@ Windows check execution are not supported by this release.
 ### One-line install
 
 ```sh
-curl -fsSL https://pumkin4534.github.io/arc-mcp-site/install.sh | bash
+curl -fsSL https://pumkin4534.github.io/install.sh | bash
 ```
 
 No GitHub login, CLI, or repository invitation is required. The installer
@@ -101,7 +101,7 @@ npm audit --omit=dev
 local deterministic provider. It verifies integration, not live model judgment
 quality. Set `ARC_TEST_SCENARIO=stop` for native cancellation testing.
 
-The current website is maintained separately in `Pumkin4534/arc-mcp-site`.
+The current website is maintained separately in `Pumkin4534/Pumkin4534.github.io`.
 The `site/` directory here is the earlier private-preview design. No GitHub Pages
 deployment is enabled for this MCP repository.
 
