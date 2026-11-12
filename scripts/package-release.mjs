@@ -1,0 +1,29 @@
+// Bundles contain prebuilt binaries and installer resources; no developer state.
+import { mkdir, cp, readFile, writeFile, copyFile } from 'node:fs/promises';
+import { execFileSync } from 'node:child_process';
+import { createHash } from 'node:crypto';
+import { dirname, join, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const { version } = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
+const platform = { darwin: 'macos', linux: 'linux', win32: 'windows' }[process.platform];
+if (!platform) throw new Error('Unsupported release platform');
+const name = `arc-mcp-${version}-${platform}-${process.arch}`;
+const stage = join(root, 'target', name);
+const dist = join(root, 'dist');
+await mkdir(join(stage, 'bin'), { recursive: true });
+await mkdir(join(stage, 'scripts'), { recursive: true });
+await mkdir(dist, { recursive: true });
+const exe = process.platform === 'win32' ? 'arc-mcp.exe' : 'arc-mcp';
+await copyFile(join(root, 'target/release', exe), join(stage, 'bin', exe));
+await cp(join(root, 'integration'), join(stage, 'integration'), { recursive: true });
+for (const file of ['package.json','package-lock.json','README.md','LICENSE','PRIVACY.md','SECURITY.md']) await copyFile(join(root,file),join(stage,file));
+await copyFile(join(root,'scripts/install.mjs'),join(stage,'scripts/install.mjs'));
+const archive = `${name}.${process.platform === 'win32' ? 'zip' : 'tar.gz'}`;
+if (process.platform === 'win32') {
+  const quote = value => `'${value.replaceAll("'", "''")}'`;
+  execFileSync('powershell.exe',['-NoProfile','-NonInteractive','-Command',`Compress-Archive -LiteralPath ${quote(stage)} -DestinationPath ${quote(join(dist,archive))} -Force`],{stdio:'inherit'});
+} else execFileSync('tar',['-czf',join(dist,archive),'-C',join(root,'target'),name],{stdio:'inherit'});
+const hash = createHash('sha256').update(await readFile(join(dist,archive))).digest('hex');
+await writeFile(join(dist,`${archive}.sha256`),`${hash}  ${archive}\n`);
+console.log(archive);

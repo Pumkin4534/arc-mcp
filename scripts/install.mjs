@@ -9,9 +9,13 @@ import { parse, modify, applyEdits } from 'jsonc-parser';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const configHome = resolve(process.env.ARC_CONFIG_HOME ?? join(process.env.XDG_CONFIG_HOME ?? join(homedir(), '.config'), 'opencode'));
-const binary = join(configHome, 'arc-mcp/bin/arc-mcp');
-const sourceBinary = resolve(process.env.ARC_INSTALL_BINARY ?? join(root, 'target/release/arc-mcp'));
-assert.equal(execFileSync(sourceBinary, ['--version'], { encoding:'utf8' }).trim(), 'arc-mcp 0.1.1', 'Unexpected binary version');
+const executable = process.platform === 'win32' ? 'arc-mcp.exe' : 'arc-mcp';
+const version = JSON.parse(await readFile(join(root, 'package.json'), 'utf8')).version;
+const binary = join(configHome, 'arc-mcp/bin', executable);
+const bundled = join(root, 'bin', executable);
+const bundleExists = await lstat(bundled).then(() => true, error => { if(error.code === 'ENOENT') return false; throw error; });
+const sourceBinary = resolve(process.env.ARC_INSTALL_BINARY ?? (bundleExists ? bundled : join(root, 'target/release', executable)));
+assert.equal(execFileSync(sourceBinary, ['--version'], { encoding:'utf8' }).trim(), `arc-mcp ${version}`, 'Unexpected binary version');
 
 async function existing(path) {
   try {
@@ -43,7 +47,7 @@ function decode(text) {
 }
 const config = decode(original);
 assert.ok(config.mcp === undefined || (config.mcp && typeof config.mcp === 'object' && !Array.isArray(config.mcp)), 'Invalid mcp config');
-const arc = { type:'local', command:[binary, 'serve'], enabled:true, timeout:780000 };
+const arc = { type:'local', command:[binary, 'serve', ...(process.platform === 'darwin' ? [] : ['--runner', 'native'])], enabled:true, timeout:780000 };
 if(config.mcp?.arc) assert.deepEqual(config.mcp.arc, arc, 'A different Arc installation already exists; no replacement was made');
 const updated = config.mcp?.arc ? original : applyEdits(original, modify(original, ['mcp','arc'], arc, { formattingOptions:{ insertSpaces:true, tabSize:2, eol:'\n' } }));
 assert.deepEqual(decode(updated), { ...config, mcp:{ ...config.mcp, arc } });

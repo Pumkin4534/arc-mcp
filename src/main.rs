@@ -1,6 +1,8 @@
 use anyhow::{Context, Result, ensure};
-use arc_mcp::{native_check::NativeCheckExecutor, workflow::WorkflowEngine};
-use clap::{Parser, Subcommand};
+#[cfg(target_os = "macos")]
+use arc_mcp::native_check::NativeCheckExecutor;
+use arc_mcp::{process_check::ProcessCheckExecutor, workflow::WorkflowEngine};
+use clap::{Parser, Subcommand, ValueEnum};
 use serde::Deserialize;
 use serde_json::{Value, json};
 use std::{path::PathBuf, sync::Arc};
@@ -19,8 +21,18 @@ struct Cli {
     /// Optional development source protection, selected at runtime by the host.
     #[arg(long, global = true)]
     source_root: Option<PathBuf>,
+    /// Platform default: Seatbelt on macOS, explicit native execution on Windows/Linux.
+    #[arg(long, global = true, value_enum, default_value = "platform")]
+    runner: Runner,
     #[command(subcommand)]
     command: Action,
+}
+
+#[derive(Clone, Copy, ValueEnum)]
+enum Runner {
+    Platform,
+    Seatbelt,
+    Native,
 }
 
 #[derive(Subcommand)]
@@ -31,6 +43,9 @@ enum Action {
     Status,
     /// Local plugin IPC. NOT an authenticated or protected attestation channel.
     NativeHost,
+    #[cfg(windows)]
+    #[command(hide = true)]
+    NativeCheckChild,
 }
 
 #[derive(Deserialize)]
@@ -52,60 +67,89 @@ async fn main() {
 
 async fn run() -> Result<()> {
     let cli = Cli::parse();
+    #[cfg(windows)]
+    if matches!(&cli.command, Action::NativeCheckChild) {
+        return arc_mcp::process_check::child_main().await;
+    }
     let root = cli.root.unwrap_or(std::env::current_dir()?);
-    let home = cli.data_home.unwrap_or(
-        dirs::data_local_dir()
-            .context("missing data directory")?
-            .join("arc-mcp"),
-    );
+    let home = cli
+        .data_home
+        .or_else(|| std::env::var_os("ARC_DATA_HOME").map(PathBuf::from))
+        .unwrap_or(
+            dirs::data_local_dir()
+                .context("missing data directory")?
+                .join("arc-mcp"),
+        );
     let engine = WorkflowEngine::new(&root, &home)?.with_native_mode();
     match cli.command {
         Action::Serve => {
-            let mut protected = vec![std::env::current_exe()?];
-            // No builder's home/source path is embedded in distributed binaries.
-            if let Some(source) = cli.source_root {
-                for relative in [
-                    "src",
-                    "integration",
-                    "scripts",
-                    "tests",
-                    "Cargo.toml",
-                    "Cargo.lock",
-                ] {
-                    let path = source.join(relative);
-                    if path.exists() {
-                        protected.push(path);
+            let native = matches!(cli.runner, Runner::Native)
+                || (matches!(cli.runner, Runner::Platform) && !cfg!(target_os = "macos"));
+            if native {
+                ensure!(
+                    cli.source_root.is_none(),
+                    "--source-root protection requires Seatbelt; native checks are not sandboxed"
+                );
+                ensure!(
+                    !cfg!(target_os = "macos"),
+                    "macOS MCP checks require Seatbelt; no native fallback"
+                );
+                let executor = ProcessCheckExecutor::new(std::env::current_exe()?);
+                return arc_mcp::protocol::serve_stdio(engine.with_executor(Arc::new(executor)))
+                    .await;
+            }
+            #[cfg(not(target_os = "macos"))]
+            anyhow::bail!(
+                "Seatbelt is only available on macOS; select --runner native for non-sandboxed Windows/Linux checks"
+            );
+            #[cfg(target_os = "macos")]
+            {
+                let mut protected = vec![std::env::current_exe()?];
+                // No builder's home/source path is embedded in distributed binaries.
+                if let Some(source) = cli.source_root {
+                    for relative in [
+                        "src",
+                        "integration",
+                        "scripts",
+                        "tests",
+                        "Cargo.toml",
+                        "Cargo.lock",
+                    ] {
+                        let path = source.join(relative);
+                        if path.exists() {
+                            protected.push(path);
+                        }
                     }
                 }
-            }
-            if let Some(user) = dirs::home_dir() {
-                let opencode = user.join(".opencode/bin/opencode");
-                if opencode.exists() {
-                    protected.push(opencode);
-                }
-                let config = std::env::var_os("XDG_CONFIG_HOME")
-                    .map(PathBuf::from)
-                    .unwrap_or_else(|| user.join(".config"))
-                    .join("opencode");
-                for relative in [
-                    "opencode.jsonc",
-                    "opencode.json",
-                    "arc-mcp",
-                    "plugins/arc-opencode.js",
-                    "agents/arc-reviewer.md",
-                    "skills/arc-workflow",
-                    "commands/arc.md",
-                    "commands/arc-status.md",
-                    "commands/arc-continue.md",
-                ] {
-                    let path = config.join(relative);
-                    if path.exists() {
-                        protected.push(path);
+                if let Some(user) = dirs::home_dir() {
+                    let opencode = user.join(".opencode/bin/opencode");
+                    if opencode.exists() {
+                        protected.push(opencode);
+                    }
+                    let config = std::env::var_os("XDG_CONFIG_HOME")
+                        .map(PathBuf::from)
+                        .unwrap_or_else(|| user.join(".config"))
+                        .join("opencode");
+                    for relative in [
+                        "opencode.jsonc",
+                        "opencode.json",
+                        "arc-mcp",
+                        "plugins/arc-opencode.js",
+                        "agents/arc-reviewer.md",
+                        "skills/arc-workflow",
+                        "commands/arc.md",
+                        "commands/arc-status.md",
+                        "commands/arc-continue.md",
+                    ] {
+                        let path = config.join(relative);
+                        if path.exists() {
+                            protected.push(path);
+                        }
                     }
                 }
+                let executor = NativeCheckExecutor::new(protected, vec![home])?;
+                arc_mcp::protocol::serve_stdio(engine.with_executor(Arc::new(executor))).await
             }
-            let executor = NativeCheckExecutor::new(protected, vec![home])?;
-            arc_mcp::protocol::serve_stdio(engine.with_executor(Arc::new(executor))).await
         }
         Action::Status => {
             println!("{}", engine.assurance(engine.status()?));
@@ -162,5 +206,7 @@ async fn run() -> Result<()> {
             println!("{response}");
             Ok(())
         }
+        #[cfg(windows)]
+        Action::NativeCheckChild => unreachable!("helper handled before workflow construction"),
     }
 }

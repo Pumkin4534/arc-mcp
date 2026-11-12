@@ -7,11 +7,13 @@ import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
 import { parse } from 'jsonc-parser';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const executable = process.platform === 'win32' ? 'arc-mcp.exe' : 'arc-mcp';
+const version = JSON.parse(await readFile(join(root, 'package.json'), 'utf8')).version;
 async function fixture() {
   const home = await realpath(await mkdtemp(join(tmpdir(),'arc-installer-')));
   const config = join(home,'config/opencode');
   await mkdir(config,{recursive:true});
-  const env = { ...process.env, HOME:home, ARC_CONFIG_HOME:config, ARC_INSTALL_BINARY:join(root,'target/release/arc-mcp') };
+  const env = { ...process.env, HOME:home, ARC_CONFIG_HOME:config, ARC_INSTALL_BINARY:join(root,'target/release',executable) };
   const run = (...args) => execFileSync(process.execPath,[join(root,'scripts/install.mjs'),...args],{env,encoding:'utf8',stdio:['ignore','pipe','pipe']});
   return { home,config,run };
 }
@@ -19,8 +21,8 @@ test('fresh installation uses runtime paths, exact files and valid config', asyn
   const f=await fixture(); t.after(()=>rm(f.home,{recursive:true,force:true}));
   f.run('--install');
   const config=parse(await readFile(join(f.config,'opencode.jsonc'),'utf8'));
-  assert.deepEqual(config.mcp.arc.command,[join(f.config,'arc-mcp/bin/arc-mcp'),'serve']);
-  assert.equal(execFileSync(config.mcp.arc.command[0],['--version'],{encoding:'utf8'}).trim(),'arc-mcp 0.1.1');
+  assert.deepEqual(config.mcp.arc.command,[join(f.config,'arc-mcp/bin',executable),'serve',...(process.platform === 'darwin' ? [] : ['--runner','native'])]);
+  assert.equal(execFileSync(config.mcp.arc.command[0],['--version'],{encoding:'utf8'}).trim(),`arc-mcp ${version}`);
   assert.deepEqual(await readFile(join(f.config,'plugins/arc-opencode.js')),await readFile(join(root,'integration/arc-opencode.js')));
   f.run('--install');
   assert.equal((await readdir(f.config)).filter(name=>name.endsWith('.bak')).length,0);

@@ -8,6 +8,7 @@ const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const ignored=new Set(['.git','target','node_modules','dist']);
 const rules=[
   ['personal home path',/(?:\/Users\/|\/home\/)[a-zA-Z0-9._-]+/],
+  ['Windows personal home path',/[A-Za-z]:[\\/]Users[\\/][A-Za-z0-9._-]+/],
   ['private key',/-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----/],
   ['GitHub credential',/\b(?:gh[pousr]_[A-Za-z0-9]{30,}|github_pat_[A-Za-z0-9_]{50,})\b/],
   ['cloud credential',/\bAKIA[0-9A-Z]{16}\b/],
@@ -30,8 +31,8 @@ async function scan(dir){
 }
 await scan(root);
 if(process.argv.includes('--binary')){
-  const bytes=await readFile(join(root,'target/release/arc-mcp'));
-  for(const token of forbidden)if(bytes.includes(Buffer.from(token)))findings.push({file:'release binary',rule:'actual home path or private identifier'});
+  const bytes=await readFile(join(root,'target/release',process.platform==='win32'?'arc-mcp.exe':'arc-mcp'));
+  for(const token of forbidden)if(bytes.includes(Buffer.from(token))||bytes.includes(Buffer.from(token,'utf16le')))findings.push({file:'release binary',rule:'actual home path or private identifier'});
   // Generic path-remapping prefixes are not a developer's actual home path.
   if(/(?:\/Users\/|\/home\/)[A-Za-z0-9_-]+\//.test(bytes.toString('latin1')))findings.push({file:'release binary',rule:'identifying absolute home path'});
 }

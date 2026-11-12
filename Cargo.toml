@@ -1,6 +1,6 @@
 [package]
 name = "arc-mcp"
-version = "0.1.1"
+version = "0.2.0"
 edition = "2024"
 rust-version = "1.88"
 description = "Evidence-led workflow tools for OpenCode"
@@ -24,6 +24,10 @@ tokio = { version = "1", features = ["full"] }
 tokio-util = "0.7"
 tempfile = "3"
 uuid = { version = "1", features = ["v4", "serde"] }
+
+[target.'cfg(windows)'.dependencies]
+dunce = "1"
+windows-sys = { version = "0.61", features = ["Win32_Foundation", "Win32_Security", "Win32_Storage_FileSystem", "Win32_Globalization", "Win32_System_JobObjects"] }
 
 [profile.release]
 lto = "thin"

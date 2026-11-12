@@ -62,7 +62,8 @@ function nativeAdapter(directory, options) {
         const args = ["--root", directory]
         if (options.dataHome) args.push("--data-home", options.dataHome)
         args.push("native-host")
-        const child = spawn(options.binary ?? fileURLToPath(new URL("../arc-mcp/bin/arc-mcp", import.meta.url)), args, { stdio: ["pipe", "pipe", "pipe"], signal })
+        const executable = process.platform === "win32" ? "arc-mcp.exe" : "arc-mcp"
+        const child = spawn(options.binary ?? fileURLToPath(new URL(`../arc-mcp/bin/${executable}`, import.meta.url)), args, { stdio: ["pipe", "pipe", "pipe"], signal })
         let stdout = ""
         let stderr = ""
         const timer = setTimeout(() => child.kill("SIGKILL"), 90000)

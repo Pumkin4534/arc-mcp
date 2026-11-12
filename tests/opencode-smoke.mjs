@@ -9,11 +9,12 @@ import { fileURLToPath } from "node:url"
 import { homedir } from "node:os"
 
 const repo = resolve(dirname(fileURLToPath(import.meta.url)), "..")
-const builtBinary = process.env.ARC_TEST_BINARY ?? join(repo, "target/debug/arc-mcp")
-const opencode = join(homedir(), ".opencode/bin/opencode")
+const executable = process.platform === "win32" ? "arc-mcp.exe" : "arc-mcp"
+const builtBinary = process.env.ARC_TEST_BINARY ?? join(repo, "target/debug", executable)
+const opencode = process.env.ARC_TEST_OPENCODE ?? join(homedir(), ".opencode/bin", process.platform === "win32" ? "opencode.exe" : "opencode")
 const integrationRoot = process.env.ARC_TEST_INTEGRATION ?? join(repo, "integration")
 const fixture = await mkdtemp(join(repo, "target/native-smoke-"))
-const binary = join(fixture, "arc-mcp")
+const binary = join(fixture, executable)
 await copyFile(builtBinary, binary) // Cargo target executables can be hardlinked.
 await chmod(binary, 0o755)
 const project = join(fixture, "project")
@@ -24,7 +25,7 @@ await mkdir(home, { recursive: true })
 await writeFile(join(project, "answer.txt"), "42\n")
 const steps = [
   ["arc_arc_plan", { goal: "Verify answer 42", tasks: [{ id: "verify", title: "Verify the answer", acceptance: ["answer.txt contains exactly 42", "A real check and two fresh reviews are recorded"], depends_on: [] }] }],
-  ["arc_arc_run_check", { task_ids: ["verify"], command: 'test "$(cat answer.txt)" = 42 && printf "answer verified\\n"', timeout_secs: 5 }],
+  ["arc_arc_run_check", { task_ids: ["verify"], command: process.platform === "win32" ? "if ((Get-Content -Raw answer.txt).Trim() -ne '42') { exit 1 }; Write-Output 'answer verified'" : 'test "$(cat answer.txt)" = 42 && printf "answer verified\\n"', timeout_secs: 20 }],
   ["arc_arc_progress", { task_id: "verify", status: "ready", reason: "Actual answer check passed" }],
   ["arc_review", {}],
   ["arc_arc_finalize", {}],
@@ -90,7 +91,7 @@ const config = {
   $schema: "https://opencode.ai/config.json", model: "fixture/fixture", small_model: "fixture/fixture",
   enabled_providers: ["fixture"], autoupdate: false, snapshot: false, share: "disabled", permission: "allow", lsp: false,
   provider: { fixture: { npm: "@ai-sdk/openai-compatible", name: "Local deterministic fixture", options: { baseURL: `http://127.0.0.1:${provider.address().port}/v1` }, models: { fixture: { name: "fixture", tool_call: true, limit: { context: 128000, output: 8192 } } } } },
-  mcp: { arc: { type: "local", command: [binary, "--data-home", dataHome, "serve"], timeout: 90000, enabled: true } },
+  mcp: { arc: { type: "local", command: [binary, "--data-home", dataHome, "serve", ...(process.platform === "darwin" ? [] : ["--runner", "native"])], timeout: 90000, enabled: true } },
   plugin: [[join(integrationRoot, process.env.ARC_TEST_INTEGRATION ? "plugins/arc-opencode.js" : "arc-opencode.js"), { binary, dataHome }]],
 }
 if (process.env.ARC_TEST_INSTALLER === "1") {
@@ -105,7 +106,8 @@ for (const relative of ["agents/arc-reviewer.md", "commands/arc.md", "commands/a
 }
 await writeFile(join(home, ".config/opencode/opencode.json"), JSON.stringify(config))
 const env = {
-  PATH: process.env.PATH, HOME: home, OPENCODE_TEST_HOME: home,
+  PATH: process.env.PATH, HOME: home, USERPROFILE: home, OPENCODE_TEST_HOME: home, ARC_DATA_HOME: dataHome,
+  ...(process.platform === "win32" ? { SYSTEMROOT: process.env.SYSTEMROOT, WINDIR: process.env.WINDIR, COMSPEC: process.env.COMSPEC, PATHEXT: process.env.PATHEXT, APPDATA: join(home, "AppData/Roaming"), LOCALAPPDATA: join(home, "AppData/Local") } : {}),
   XDG_CONFIG_HOME: join(home, ".config"), XDG_DATA_HOME: join(home, ".local/share"), XDG_CACHE_HOME: join(home, ".cache"), XDG_STATE_HOME: join(home, ".local/state"),
   OPENCODE_DISABLE_DEFAULT_PLUGINS: "1", OPENCODE_DISABLE_PROJECT_CONFIG: "1", OPENCODE_DISABLE_EXTERNAL_SKILLS: "1", OPENCODE_DISABLE_CLAUDE_CODE: "1", OPENCODE_DISABLE_MODELS_FETCH: "1", OPENCODE_DISABLE_AUTOUPDATE: "1",
 }

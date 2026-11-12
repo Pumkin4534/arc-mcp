@@ -1,0 +1,63 @@
+name: Platform verification
+on:
+  push:
+    branches: [main, cross-platform]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  verify:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            label: linux-x64
+          - os: windows-2022
+            label: windows-x64
+          - os: macos-15-intel
+            label: macos-x64
+          - os: macos-15
+            label: macos-arm64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020
+        with:
+          node-version: '22'
+      - name: Tool versions
+        run: |
+          rustup toolchain install stable --profile minimal --component clippy --component rustfmt
+          rustup default stable
+          cargo --version
+          node --version
+      - name: Rust tests
+        run: cargo test --locked
+      - name: Clippy
+        run: cargo clippy --all-targets --locked -- -D warnings
+      - name: Installer dependencies
+        run: npm ci --ignore-scripts --no-audit --no-fund
+      - name: Privacy-remapped release build
+        run: node scripts/build.mjs
+      - name: Plugin and installer tests
+        run: npm test
+      - name: Privacy scan
+        run: node scripts/privacy-scan.mjs --binary
+      - name: Prepare official OpenCode test runtime
+        run: node scripts/fetch-test-opencode.mjs
+      - name: Native OpenCode integration
+        run: node tests/opencode-smoke.mjs
+      - name: Native Stop integration
+        env:
+          ARC_TEST_SCENARIO: stop
+        run: node tests/opencode-smoke.mjs
+      - name: Package release
+        run: node scripts/package-release.mjs
+      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: ${{ matrix.label }}
+          path: dist/*
+          if-no-files-found: error

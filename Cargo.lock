@@ -78,12 +78,13 @@ checksum = "330a5ed07fa54e4702c9d6c4174f74427fc0ef6e214bbd677ae50a5099946470"
 
 [[package]]
 name = "arc-mcp"
-version = "0.1.1"
+version = "0.2.0"
 dependencies = [
  "anyhow",
  "chrono",
  "clap",
  "dirs",
+ "dunce",
  "fs2",
  "ignore",
  "libc",
@@ -94,6 +95,7 @@ dependencies = [
  "tokio",
  "tokio-util",
  "uuid",
+ "windows-sys",
 ]
 
 [[package]]
@@ -295,6 +297,12 @@ dependencies = [
  "redox_users",
  "windows-sys",
 ]
+
+[[package]]
+name = "dunce"
+version = "1.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "92773504d58c093f6de2459af4af33faa518c13451eb8f2b5698ed3d36e7c813"
 
 [[package]]
 name = "errno"

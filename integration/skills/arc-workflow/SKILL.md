@@ -39,12 +39,14 @@ This installation is **native-advisory**. The plugin creates fresh read-only
 reviewer sessions, but ordinary same-user native tools can alter the ledger or
 invoke the local adapter. Completion records are useful workflow evidence, not
 tamper-proof security attestations. No blanket native-tool confinement is applied.
-Only MCP-owned checks receive macOS Seatbelt protection: writes to project/scratch,
-protected extension/config/state paths denied, no network/Mach delegation. Install
-dependencies with normal approved native tools before checking. Checks that need
-network or writes outside project/scratch must be reported as blocked, not passed.
-Cancellation kills the owned process group; deliberately detached processes are
-not guaranteed stopped. Do not use daemon/background checks. Source observations
+On macOS, MCP-owned checks use Seatbelt: project/scratch writes, protected paths
+denied, no network/Mach delegation. On Windows and Ubuntu, checks run natively
+without filesystem/network sandboxing; this is an explicit runner mode, not a
+fallback from failed isolation. Use PowerShell commands on Windows and POSIX shell
+commands on Ubuntu/macOS. The actual runner is recorded in every check outcome.
+Cancellation cleans the owned Windows Job Object or Unix process group, not
+external services or deliberately detached/delegated processes. Use foreground
+checks. Install dependencies with normal approved tools first. Source observations
 are scoped and non-atomic; ignored/generated/secret files and symlink referents are
 excluded. Report these limits where relevant to acceptance.
 

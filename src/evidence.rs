@@ -104,6 +104,10 @@ pub struct CheckArtifact {
 }
 
 fn excluded_name(name: &str) -> bool {
+    #[cfg(windows)]
+    let normalized = name.to_ascii_lowercase();
+    #[cfg(windows)]
+    let name = normalized.as_str();
     EXCLUDED_DIRS.contains(&name)
         || name == ".env"
         || name.starts_with(".env.")
@@ -227,6 +231,8 @@ pub fn fingerprint(root: &Path) -> Result<SourceFingerprint> {
         "Source scope respects .gitignore/.ignore and repository excludes (also without Git); global Git ignores are disabled. Generated directories (.git/.hg/.svn/node_modules/target/dist/build/coverage/.next/.cache/.venv/venv/__pycache__) and secret paths (.env*, .ssh/.aws/.gnupg, credentials, secrets.json, private-key extensions) are excluded. Checks cannot attest excluded content.".into(),
         "Fingerprint is a bounded source-content observation, not a filesystem snapshot; keep source quiescent during checks/review. Budgets: 200000 entries, 2GiB eligible files, 60 seconds; exceeding any budget fails closed.".into(),
     ];
+    #[cfg(windows)]
+    warnings.push("Windows fingerprints cover source paths/content, not ACLs or executable permissions. Reparse-point redirection is rejected before reading file content.".into());
     if symlinks > 0 {
         warnings.push(format!(
             "{symlinks} symlink target names hashed; referent content is outside attested scope."
@@ -276,7 +282,75 @@ fn open_source_file(root: &Path, relative: &Path) -> Result<File> {
     Ok(directory)
 }
 
-#[cfg(not(unix))]
+#[cfg(windows)]
+fn open_source_file(root: &Path, relative: &Path) -> Result<File> {
+    use std::os::windows::{
+        ffi::OsStringExt,
+        fs::{MetadataExt, OpenOptionsExt},
+        io::AsRawHandle,
+    };
+    use windows_sys::Win32::{
+        Globalization::{CSTR_EQUAL, CompareStringOrdinal},
+        Storage::FileSystem::*,
+    };
+    let expected = root.join(relative);
+    let file = fs::OpenOptions::new()
+        .read(true)
+        .share_mode(FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE)
+        .custom_flags(FILE_FLAG_OPEN_REPARSE_POINT | FILE_FLAG_SEQUENTIAL_SCAN)
+        .open(&expected)?;
+    if file.metadata()?.file_attributes() & FILE_ATTRIBUTE_REPARSE_POINT != 0 {
+        bail!("fingerprint_unknown: reparse-point source file refused");
+    }
+    let mut buffer = vec![0u16; 32768];
+    let length = unsafe {
+        GetFinalPathNameByHandleW(
+            file.as_raw_handle(),
+            buffer.as_mut_ptr(),
+            buffer.len() as u32,
+            0,
+        )
+    };
+    if length == 0 || length as usize >= buffer.len() {
+        bail!("fingerprint_unknown: cannot resolve opened Windows source handle");
+    }
+    let actual = PathBuf::from(std::ffi::OsString::from_wide(&buffer[..length as usize]));
+    // Compare the opened HANDLE's path, not a second pathname lookup. This rejects
+    // ancestor junction/reparse redirection before any file content is read.
+    fn normalized(path: &Path) -> Vec<u16> {
+        use std::os::windows::ffi::OsStrExt;
+        let value: Vec<u16> = path.as_os_str().encode_wide().collect();
+        let unc: Vec<u16> = "\\\\?\\UNC\\".encode_utf16().collect();
+        let prefix: Vec<u16> = "\\\\?\\".encode_utf16().collect();
+        if value.starts_with(&unc) {
+            return "\\\\"
+                .encode_utf16()
+                .chain(value[unc.len()..].iter().copied())
+                .collect();
+        }
+        if value.starts_with(&prefix) {
+            return value[prefix.len()..].to_vec();
+        }
+        value
+    }
+    let expected = normalized(&expected);
+    let actual = normalized(&actual);
+    if unsafe {
+        CompareStringOrdinal(
+            expected.as_ptr(),
+            expected.len() as i32,
+            actual.as_ptr(),
+            actual.len() as i32,
+            1,
+        )
+    } != CSTR_EQUAL
+    {
+        bail!("fingerprint_unknown: Windows ancestor reparse/rename redirected source");
+    }
+    Ok(file)
+}
+
+#[cfg(not(any(unix, windows)))]
 fn open_source_file(_root: &Path, _relative: &Path) -> Result<File> {
     bail!("fingerprint_unsupported: no no-follow source reader implemented for this platform")
 }
