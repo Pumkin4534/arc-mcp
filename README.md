@@ -5,38 +5,51 @@
 Arc adds 1–5 ordered outcomes, actual check records, two fresh read-only native
 reviewers and an advisory completion gate. OpenCode keeps its models, UI and tools.
 
-## Open source · v0.1.1
+## Open source · v0.2.0
 
 Arc MCP is publicly available under the MIT license. Explore the workflow and
 installation guide at https://pumkin4534.github.io/.
 
 ## Install
 
-Requirements: **macOS**, OpenCode (tested with **1.18.25**) and Xcode command line
-tools. Missing Rust/Cargo and Node.js/npm are prepared automatically. Compatible
-existing tools are reused. Intel macOS is tested; Apple Silicon
-builds from source but has not been exercised on the development host. Linux and
-Windows check execution are not supported by this release.
+OpenCode integration targets **1.18.25**. Platform bundles contain a prebuilt Rust
+binary; installation needs **no Cargo, compiler, Xcode or Visual Studio**. Node.js
+20+ is reused when available or installed in a user-local managed directory.
+
+| Platform | Command runner | Protection |
+| --- | --- | --- |
+| macOS, Intel / Apple Silicon | POSIX shell through Seatbelt | Scoped filesystem/network restrictions; owned process-group cleanup |
+| Ubuntu 22.04+, x64 / ARM64 | Native POSIX shell | Process-group cleanup; **no filesystem/network sandbox** |
+| Windows x64 / ARM64 | Native Windows PowerShell | Owned Windows Job Object cleanup; **no filesystem/network sandbox** |
+
+Native Windows/Ubuntu checks are an explicit compatibility mode. A failed macOS
+sandbox is never retried without protection. Every check records its actual runner.
 
 ### One-line install
+
+macOS / Ubuntu:
 
 ```sh
 curl -fsSL https://pumkin4534.github.io/install.sh | bash
 ```
 
-No GitHub login, CLI, or repository invitation is required. The installer
-downloads the public versioned source, builds locally with builder paths
-remapped, and merges an Arc entry into existing OpenCode JSON/JSONC configuration.
+Windows PowerShell:
+
+```powershell
+irm https://pumkin4534.github.io/install.ps1 | iex
+```
+
+No GitHub login, CLI, or repository invitation is required. The installer verifies
+the release bundle's SHA-256 checksum and merges an Arc entry into existing
+OpenCode JSON/JSONC configuration.
 It supports comments and trailing commas, backs up changed configuration and
 refuses conflicting Arc installations. It does not replace existing providers or
 permissions. Source archives contain no developer sessions, logs or credentials.
 
-Automatically prepared build tools live under
-`${XDG_DATA_HOME:-$HOME/.local/share}/arc-mcp/tools` (or `ARC_TOOLS_HOME`). Rust is
-installed through official rustup; Node.js uses a checksum-verified official
-archive. These build-tool PATH changes are local to the installer process, with
-no replacement of existing toolchains or shell-profile edits. If Apple's developer
-tools are missing, run `xcode-select --install` first and rerun the same command.
+Managed Node.js lives under `${XDG_DATA_HOME:-$HOME/.local/share}/arc-mcp/tools`
+on Unix or `%LOCALAPPDATA%\arc-mcp\tools` on Windows (`ARC_TOOLS_HOME` overrides it).
+Its official archive is checksum-verified. Existing runtimes and shell profiles
+are preserved; Windows restores the calling session's PATH and TLS settings.
 
 Quit and restart OpenCode after installation:
 
@@ -46,7 +59,7 @@ Quit and restart OpenCode after installation:
 /arc-continue
 ```
 
-Installed binary: `~/.config/opencode/arc-mcp/bin/arc-mcp` (respects
+Installed binary: `~/.config/opencode/arc-mcp/bin/arc-mcp` (`arc-mcp.exe` on Windows; respects
 `XDG_CONFIG_HOME`). The installer also adds the Arc plugin, read-only agent,
 workflow skill and three commands. Tests use `ARC_CONFIG_HOME` to select an
 isolated configuration directory; normal use requires no environment overrides.
@@ -78,11 +91,13 @@ See [PRIVACY.md](PRIVACY.md) and [SECURITY.md](SECURITY.md).
   receives that task/evidence context; this is not an offline-only tool.
 - Completion is explicitly `native-advisory`, `tamper_protected:false`. Ordinary
   native tools and same-user processes can modify host records.
-- Only MCP-owned checks use macOS Seatbelt. Source observations are scoped and
+- macOS checks use Seatbelt; native Windows/Ubuntu checks are not OS-sandboxed.
+  Source observations are scoped and
   non-atomic; ignored/generated/secret content and symlink referents are excluded.
-- Cleanup owns a process group, not deliberately detached descendants. Run
-  foreground tests, not daemons. Guarded checks deny network/Mach delegation and
-  writes outside project/scratch (except `/dev/null`). Install dependencies first.
+- Cleanup owns a Unix process group or Windows Job Object, not external services
+  or delegated processes. Run foreground tests, not daemons. macOS guarded checks
+  deny network/Mach delegation and writes outside project/scratch (except
+  `/dev/null`). Install project dependencies first.
 
 ## Development
 

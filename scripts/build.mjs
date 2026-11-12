@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const flags = [
   ...(process.env.CARGO_ENCODED_RUSTFLAGS?.split('\x1f') ?? []),
+  ...(process.platform === 'win32' ? ['-C', 'target-feature=+crt-static'] : []),
   `--remap-path-prefix=${homedir()}=/build/home`,
   `--remap-path-prefix=${tmpdir()}=/build/tmp`,
   `--remap-path-prefix=${process.env.CARGO_HOME ?? join(homedir(), '.cargo')}=/build/cargo-home`,

@@ -1,5 +1,5 @@
 // Downloads the official pinned CLI for isolated transport tests, not inference.
-import { mkdir, writeFile, readdir, chmod, appendFile } from 'node:fs/promises';
+import { mkdir, readdir, chmod, appendFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -10,10 +10,9 @@ const platform = { darwin: 'darwin', linux: 'linux', win32: 'windows' }[process.
 if (!platform) throw new Error('Unsupported test platform');
 const extension = process.platform === 'linux' ? 'tar.gz' : 'zip';
 const asset = `opencode-${platform}-${process.arch}${process.arch === 'x64' ? '-baseline' : ''}.${extension}`;
-const response = await fetch(`https://github.com/anomalyco/opencode/releases/download/v1.18.25/${asset}`, { signal: AbortSignal.timeout(120000) });
-if (!response.ok) throw new Error(`Official test CLI unavailable: ${response.status}`);
 const archive = join(directory, asset);
-await writeFile(archive, Buffer.from(await response.arrayBuffer()));
+// Retrying an immutable download is safe; model/check commands are never replayed.
+execFileSync(process.platform === 'win32' ? 'curl.exe' : 'curl', ['-q','--fail','--silent','--show-error','--location','--proto','=https','--proto-redir','=https','--connect-timeout','30','--max-time','180','--retry','2','--retry-delay','2','--retry-connrefused',`https://github.com/anomalyco/opencode/releases/download/v1.18.25/${asset}`,'--output',archive], { stdio:'inherit', timeout:600000 });
 if (process.platform === 'win32') {
   const quote = value => `'${value.replaceAll("'", "''")}'`;
   execFileSync('powershell.exe', ['-NoProfile','-NonInteractive','-Command',`Expand-Archive -LiteralPath ${quote(archive)} -DestinationPath ${quote(directory)} -Force`]);

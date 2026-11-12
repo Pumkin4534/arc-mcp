@@ -60,6 +60,16 @@ jobs:
         run: node tests/opencode-smoke.mjs
       - name: Package release
         run: node scripts/package-release.mjs
+      - name: Packaged runtime installation
+        run: node tests/bundle-smoke.mjs
+      - name: PowerShell installer syntax
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PWD 'install.ps1'), [ref]$tokens, [ref]$errors) | Out-Null
+          if ($errors.Count) { $errors | Format-List; exit 1 }
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: ${{ matrix.label }}

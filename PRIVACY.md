@@ -15,7 +15,9 @@ Arc stores workflow goals, acceptance criteria, project paths, command strings,
 bounded output, timestamps, scoped source hashes, review findings and native
 session identifiers in a local state directory. On macOS this defaults to
 `~/Library/Application Support/arc-mcp`; `--data-home` can select another external
-directory. Files use owner-only permissions, not encryption. Same-user processes
+directory. Unix files use owner-only mode bits; Windows storage inherits the
+parent directory's ACLs. Use a private user-owned data location. This is not
+encryption. Same-user processes
 can read or modify them. There is no automatic retention/garbage-collection policy.
 
 Command output is not automatically sanitized. Source fingerprint exclusions do

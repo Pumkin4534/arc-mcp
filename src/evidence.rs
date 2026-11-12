@@ -123,6 +123,13 @@ fn excluded_name(name: &str) -> bool {
 /// Source-only, non-Git-capable fingerprint. Exclusions are always disclosed.
 /// This is a content freshness check, not an atomic filesystem snapshot.
 pub fn fingerprint(root: &Path) -> Result<SourceFingerprint> {
+    // Windows temp/user roots can use 8.3 names. Resolve the trusted root once;
+    // opened descendant handles still must match their expected in-root paths.
+    #[cfg(windows)]
+    let canonical_root =
+        fs::canonicalize(root).context("fingerprint_unknown: cannot resolve source root")?;
+    #[cfg(windows)]
+    let root = canonical_root.as_path();
     let start = Instant::now();
     let mut paths = Vec::new();
     let walker = WalkBuilder::new(root)
