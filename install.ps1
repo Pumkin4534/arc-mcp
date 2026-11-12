@@ -17,8 +17,11 @@ function Test-Checksum([string]$Path, [string]$Expected) {
 function Test-Node {
     if (-not (Get-Command node.exe -ErrorAction SilentlyContinue) -or -not (Get-Command npm.cmd -ErrorAction SilentlyContinue)) { return $false }
     try {
-        & node.exe -e 'if (Number(process.versions.node.split(".")[0]) < 20) process.exit(1)' 2>$null
-        if ($LASTEXITCODE -ne 0) { return $false }
+        # Windows PowerShell 5.1 strips nested native-argument quotes. A version
+        # string avoids passing JavaScript source through that quoting layer.
+        $nodeVersionText = & node.exe --version 2>$null
+        if ($LASTEXITCODE -ne 0 -or $nodeVersionText -notmatch '^v([0-9]+)\.') { return $false }
+        if ([int]$Matches[1] -lt 20) { return $false }
         & npm.cmd --version 1>$null 2>$null
         return $LASTEXITCODE -eq 0
     } catch { return $false }
