@@ -2,7 +2,7 @@
 # Canonical prebuilt release installer: no Cargo or compiler required.
 set -euo pipefail
 umask 077
-version='0.2.0'
+version='0.2.1'
 case "$(uname -s)" in
   Darwin) platform='macos'; node_os='darwin';;
   Linux) platform='linux'; node_os='linux';;

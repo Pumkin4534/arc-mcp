@@ -18,7 +18,11 @@ same-user tampering. Unix cleanup is process-group scoped. See the README for
 exclusions and supported scope.
 
 The installer uses versioned HTTPS release bundles, SHA-256 verification, locked
-installer dependencies, conflict checks and a configuration backup. Release
+installer dependencies, symlink checks and private transaction backups. Managed
+Arc files are upgraded by default; unrelated configuration is retained. Each
+replacement is staged and the config is activated last. Ordinary errors trigger
+rollback; concurrent edits or an interrupted process can require inspection of
+the backup journal. This is not a power-loss-atomic multi-file transaction. Release
 binaries are built with source/home path remapping. It does not claim
 cryptographic release attestation. Review `install.sh` before execution if your
 environment requires manual review of downloaded code.

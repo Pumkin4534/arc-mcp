@@ -74,6 +74,8 @@ jobs:
         run: node tests/bootstrap-smoke.mjs
       - name: Bootstrap without usable Node.js
         run: node tests/bootstrap-smoke.mjs --bootstrap-node
+      - name: Previous-release upgrade and repeat installation
+        run: node tests/upgrade-smoke.mjs
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: ${{ matrix.label }}

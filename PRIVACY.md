@@ -11,6 +11,13 @@ runtime `--source-root` argument instead.
 
 ## Data created when you use Arc
 
+Installation and upgrades keep private config/Arc-file snapshots under the
+selected config directory's `arc-mcp/backups/`. These may include credentials
+already present in your OpenCode config. Unix backup directories/files use
+owner-only modes; Windows inherits the parent directory's ACLs. Backups and the
+installation receipt/lock remain local and are not included in release bundles.
+Identical reruns create no additional backup. Backups have no automatic expiry.
+
 Arc stores workflow goals, acceptance criteria, project paths, command strings,
 bounded output, timestamps, scoped source hashes, review findings and native
 session identifiers in a local state directory. On macOS this defaults to

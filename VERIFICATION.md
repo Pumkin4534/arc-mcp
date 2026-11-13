@@ -1,5 +1,27 @@
 # Release verification
 
+## v0.2.1 upgrade verification
+
+The installer now upgrades by default. Its regression suite covers legacy paths,
+existing JSON/JSONC, retained comments and custom settings, private backups,
+same-version repairs, identical reruns, mid-activation failure rollback,
+concurrent config edits, overlapping installers, symlinks and downgrade refusal.
+Sixteen plugin/installer tests passed locally with the verified 0.2.0 binary
+before the maintenance version bump.
+
+The six-platform release workflow also installs the real public 0.2.0 bundle,
+upgrades it with the current packaged installer in a home containing spaces, and
+reruns installation. It checks versions, backup contents, retained JSONC bytes,
+custom timeout, workflow history and no additional backup for an identical rerun.
+Release notes link the successful workflow for the exact published commit.
+
+The authorized local 0.1.0-to-0.2.0 migration passed the installed MCP handshake
+and seven-tool catalog check, retained non-Arc settings, and kept rollback copies
+of the old Arc files and executable. Two additional local full-OpenCode smoke
+attempts stalled during isolated dependency setup and were stopped; they are not
+counted as passes. Local compilation after the version bump also exceeded its
+deadline. Cross-platform release CI is required separately before publication.
+
 ## v0.2.0 cross-platform verification
 
 [Platform workflow 43271511562](https://github.com/Pumkin4534/arc-mcp/actions/runs/43271511562)

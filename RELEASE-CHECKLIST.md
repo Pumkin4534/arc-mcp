@@ -13,6 +13,9 @@ Release checks:
   Ubuntu and macOS, each on x64 and ARM64. Run Rust/Clippy, plugin/installer tests,
   real isolated OpenCode completion and Stop, packaged-runtime installation, and
   bootstrap installation with both existing and freshly downloaded Node.js.
+- Exercise an actual previous-release installation followed by the new packaged
+  upgrader and an identical rerun. Verify backups, retained settings/history and
+  rollback on injected activation failures.
 - Review the website at desktop/mobile sizes and its installation labels.
 - Confirm no runtime state, test transcripts, generated logs or binaries are staged.
 - Keep commit author/committer email on GitHub's no-reply domain.

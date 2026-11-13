@@ -5,7 +5,7 @@
 Arc adds 1–5 ordered outcomes, actual check records, two fresh read-only native
 reviewers and an advisory completion gate. OpenCode keeps its models, UI and tools.
 
-## Open source · v0.2.0
+## Open source · v0.2.1
 
 Arc MCP is publicly available under the MIT license. Explore the workflow and
 installation guide at https://pumkin4534.github.io/.
@@ -42,9 +42,31 @@ irm https://pumkin4534.github.io/install.ps1 | iex
 No GitHub login, CLI, or repository invitation is required. The installer verifies
 the release bundle's SHA-256 checksum and merges an Arc entry into existing
 OpenCode JSON/JSONC configuration.
-It supports comments and trailing commas, backs up changed configuration and
-refuses conflicting Arc installations. It does not replace existing providers or
-permissions. Source archives contain no developer sessions, logs or credentials.
+It supports comments and trailing commas and installs or upgrades Arc on every
+run. Existing providers, permissions, custom Arc settings and workflow history
+are retained. Source archives contain no developer sessions, logs or credentials.
+
+### Update an existing installation
+
+Run the same install command again. It selects the currently published installer
+release, replaces Arc's managed binary/plugin/agent/skill/commands, and migrates
+older Arc command paths to the managed layout. Identical installations are a
+no-op. Locally edited Arc-managed files are backed up before being replaced;
+unrelated OpenCode files are not installer-managed.
+
+Each changed installation keeps a private rollback snapshot under
+`~/.config/opencode/arc-mcp/backups/` (or your selected config directory). It
+contains the original config and Arc files plus a `journal.json` describing the
+transaction. Ordinary activation failures roll back files already replaced.
+Concurrent edits are preserved and reported if rollback cannot safely complete.
+Interrupted installations leave a lock/journal for inspection rather than being
+automatically replayed. Receipt-marked downgrades are refused.
+
+Close OpenCode before upgrading on Windows, where a running executable may be
+locked. After an upgrade on any platform, quit and restart OpenCode so it loads
+the new plugin and MCP process. Backups may contain configuration secrets; keep
+them private. An old standalone executable outside the managed directory is not
+overwritten by the public installer; OpenCode's Arc command is migrated instead.
 
 Managed Node.js lives under `${XDG_DATA_HOME:-$HOME/.local/share}/arc-mcp/tools`
 on Unix or `%LOCALAPPDATA%\arc-mcp\tools` on Windows (`ARC_TOOLS_HOME` overrides it).

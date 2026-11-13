@@ -1,7 +1,7 @@
 # Arc MCP prebuilt installation for Windows. Run in a normal PowerShell session.
 & {
 $ErrorActionPreference = 'Stop'
-$version = '0.2.0'
+$version = '0.2.1'
 $originalPath = $env:PATH
 $originalTls = [Net.ServicePointManager]::SecurityProtocol
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
@@ -74,7 +74,7 @@ try {
         & npm.cmd ci --ignore-scripts --no-audit --no-fund
         if ($LASTEXITCODE -ne 0) { throw 'Installer dependencies failed.' }
         & node.exe scripts/install.mjs --install
-        if ($LASTEXITCODE -ne 0) { throw 'Arc installation failed; existing files were preserved.' }
+        if ($LASTEXITCODE -ne 0) { throw 'Arc installation failed. Inspect the installer error and any reported rollback backup.' }
     } finally { Pop-Location }
 } finally {
     $env:PATH = $originalPath
