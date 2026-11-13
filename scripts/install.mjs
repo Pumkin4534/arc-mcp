@@ -115,9 +115,10 @@ export async function installArc({
   if (!apply) { log(`Preflight passed: ${changes.length} Arc installation files need updating. Use --install to apply.`); return {status:'preflight',version,changes:changes.length}; }
 
   const lockPath=join(configHome,'arc-mcp/install.lock'), token=randomUUID();
+  const lockRecord=JSON.stringify({token,pid:process.pid});
   await noSymlinkAncestors(lockPath);
   await fs.mkdir(dirname(lockPath),{recursive:true,mode:0o700});
-  try { await fs.writeFile(lockPath,JSON.stringify({token,pid:process.pid}),{flag:'wx',mode:0o600}); }
+  try { await fs.writeFile(lockPath,lockRecord,{flag:'wx',mode:0o600}); }
   catch(e) { if(e.code==='EEXIST') throw new Error(`Another installation or interrupted upgrade owns ${lockPath}. Inspect it before retrying; no upgrade was replayed.`); throw e; }
   let backup, journal;
   const activated=[], staged=[];
@@ -130,7 +131,7 @@ export async function installArc({
   try {
     for (const file of files) await unchanged(file);
     // Also guard against a second config appearing after preflight.
-    assert.equal((await snapshot(configPath===jsonPath ? jsoncPath : jsonPath)).bytes,null,'A second OpenCode config appeared during installation');
+    assert.ok((await snapshot(configPath===jsonPath ? jsoncPath : jsonPath)).bytes===null,'A second OpenCode config appeared during installation');
     if (!changes.length) { log(`Arc MCP ${version} is already up to date.`); return {status:'current',version,changes:0}; }
     backup=join(configHome,'arc-mcp/backups',`${new Date().toISOString().replaceAll(':','-')}-${token}`);
     await noSymlinkAncestors(join(backup,'journal.json'));
@@ -173,7 +174,7 @@ export async function installArc({
           await fs.unlink(entry.file.path);
         }
         if (entry.moved) {
-          assert.equal((await snapshot(entry.file.path)).bytes,null,`Concurrent replacement preserved: ${entry.file.path}`);
+          assert.ok((await snapshot(entry.file.path)).bytes===null,`Concurrent replacement preserved: ${entry.file.path}`);
           await fs.rename(entry.displaced,entry.file.path);
         }
       } catch(e) { failures.push(e.message); }
@@ -184,8 +185,10 @@ export async function installArc({
   } finally {
     for (const path of staged) await fs.unlink(path).catch(e=>{if(e.code!=='ENOENT') log(`Inspect leftover staged file: ${path}`);});
     // Do not remove a lock replaced by a concurrent actor.
-    const lock=JSON.parse(await fs.readFile(lockPath,'utf8'));
-    if (lock.token===token) await fs.unlink(lockPath);
+    try {
+      if (await fs.readFile(lockPath,'utf8')===lockRecord) await fs.unlink(lockPath);
+      else log(`Inspect changed installer lock: ${lockPath}`);
+    } catch(e) { if(e.code!=='ENOENT') log(`Inspect installer lock cleanup: ${lockPath}`); }
   }
 }
 
