@@ -4,6 +4,7 @@ import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { windowsPowerShell } from './windows-powershell.mjs';
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const { version } = JSON.parse(await readFile(join(root, 'package.json'), 'utf8'));
 const platform = { darwin: 'macos', linux: 'linux', win32: 'windows' }[process.platform];
@@ -22,7 +23,7 @@ await copyFile(join(root,'scripts/install.mjs'),join(stage,'scripts/install.mjs'
 const archive = `${name}.${process.platform === 'win32' ? 'zip' : 'tar.gz'}`;
 if (process.platform === 'win32') {
   const quote = value => `'${value.replaceAll("'", "''")}'`;
-  execFileSync('powershell.exe',['-NoProfile','-NonInteractive','-Command',`Compress-Archive -LiteralPath ${quote(stage)} -DestinationPath ${quote(join(dist,archive))} -Force`],{stdio:'inherit'});
+  windowsPowerShell(`Compress-Archive -LiteralPath ${quote(stage)} -DestinationPath ${quote(join(dist,archive))} -Force`,{stdio:'inherit'});
 } else execFileSync('tar',['-czf',join(dist,archive),'-C',join(root,'target'),name],{stdio:'inherit'});
 const hash = createHash('sha256').update(await readFile(join(dist,archive))).digest('hex');
 await writeFile(join(dist,`${archive}.sha256`),`${hash}  ${archive}\n`);

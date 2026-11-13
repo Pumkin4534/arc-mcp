@@ -5,6 +5,7 @@ import { mkdtemp, mkdir, readFile, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createInterface } from 'node:readline';
+import { windowsPowerShell } from '../scripts/windows-powershell.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const {version}=JSON.parse(await readFile(join(root,'package.json'),'utf8'));
 const platform={darwin:'macos',linux:'linux',win32:'windows'}[process.platform];
@@ -15,7 +16,7 @@ await Promise.all([mkdir(unpacked),mkdir(home),mkdir(project)]);
 const archive=join(root,'dist',`${name}.${process.platform==='win32'?'zip':'tar.gz'}`);
 if(process.platform==='win32'){
  const quote=s=>`'${s.replaceAll("'","''")}'`;
- execFileSync('powershell.exe',['-NoProfile','-NonInteractive','-Command',`Expand-Archive -LiteralPath ${quote(archive)} -DestinationPath ${quote(unpacked)}`]);
+ windowsPowerShell(`Expand-Archive -LiteralPath ${quote(archive)} -DestinationPath ${quote(unpacked)}`);
 }else execFileSync('tar',['-xzf',archive,'-C',unpacked]);
 const payload=join(unpacked,name),configHome=join(home,'.config/opencode');
 const env={...process.env,HOME:home,USERPROFILE:home,ARC_CONFIG_HOME:configHome,ARC_DATA_HOME:join(fixture,'state')};

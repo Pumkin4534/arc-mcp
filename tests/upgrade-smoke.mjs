@@ -6,6 +6,7 @@ import {createHash} from 'node:crypto';
 import {dirname,join,resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {parse,modify,applyEdits} from 'jsonc-parser';
+import {windowsPowerShell} from '../scripts/windows-powershell.mjs';
 const root=resolve(dirname(fileURLToPath(import.meta.url)),'..');
 const {version}=JSON.parse(await readFile(join(root,'package.json'),'utf8'));
 const previous='0.2.0',platform={darwin:'macos',linux:'linux',win32:'windows'}[process.platform],extension=process.platform==='win32'?'zip':'tar.gz';
@@ -28,7 +29,7 @@ async function unpack(archive,v){
  const dir=join(fixture,`unpacked-${v}`);await mkdir(dir);
  if(process.platform==='win32'){
   const q=s=>`'${s.replaceAll("'","''")}'`;
-  execFileSync('powershell.exe',['-NoProfile','-NonInteractive','-Command',`Expand-Archive -LiteralPath ${q(archive)} -DestinationPath ${q(dir)}`],{stdio:'inherit',timeout:120000});
+  windowsPowerShell(`Expand-Archive -LiteralPath ${q(archive)} -DestinationPath ${q(dir)}`,{stdio:'inherit',timeout:120000});
  }else execFileSync('tar',['-xzf',archive,'-C',dir]);
  return join(dir,`arc-mcp-${v}-${platform}-${process.arch}`);
 }
